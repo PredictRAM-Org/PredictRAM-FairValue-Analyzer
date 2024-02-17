@@ -47,5 +47,10 @@ def main():
             st.write(f'Fair Value (P/S): ${fair_value_ps:.2f}')
             st.write(f'Fair Value (P/B): ${fair_value_pb:.2f}')
 
+            st.subheader('Fair Value Relative to Current Price:')
+            st.write(f'Fair Value vs. Current Price (P/E): {current_price/fair_value_pe:.2%}')
+            st.write(f'Fair Value vs. Current Price (P/S): {current_price/fair_value_ps:.2%}')
+            st.write(f'Fair Value vs. Current Price (P/B): {current_price/fair_value_pb:.2%}')
+
 if __name__ == '__main__':
     main()
