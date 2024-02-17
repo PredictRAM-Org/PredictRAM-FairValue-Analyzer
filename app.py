@@ -1,28 +1,55 @@
 import streamlit as st
 import yfinance as yf
 
-def calculate_fair_value(stock_symbol, pe_ratio, industry_pe_ratio):
-    # Fetch stock data from Yahoo Finance
-    stock_data = yf.download(stock_symbol, start="2023-01-01", end="2024-01-01")
+def fetch_income_statement(stock_symbol):
+    # Fetch the latest income statement data from Yahoo Finance
+    stock_info = yf.Ticker(stock_symbol)
+    income_statement = stock_info.get_income_statement(interval='annual')
+    return income_statement
 
-    # Calculate fair value based on P/E ratio
-    fair_value = stock_data['Close'].iloc[-1] * (pe_ratio / industry_pe_ratio)
-    return fair_value
+def calculate_fair_value(stock_symbol, pe_ratio, ps_ratio, pb_ratio, current_price):
+    # Calculate fair value based on user-provided ratios
+    fair_value_pe = current_price * pe_ratio
+    fair_value_ps = current_price * ps_ratio
+    fair_value_pb = current_price * pb_ratio
+
+    return fair_value_pe, fair_value_ps, fair_value_pb
 
 def main():
     st.title('Stock Valuation App')
 
     # Input parameters
     stock_symbol = st.text_input('Enter Stock Symbol (e.g., AAPL):')
-    pe_ratio = st.number_input('Enter P/E Ratio:', min_value=0.1, step=0.1)
-    industry_pe_ratio = st.number_input('Enter Industry Average P/E Ratio:', min_value=0.1, step=0.1)
+    expected_pe_ratio = st.number_input('Enter Expected P/E Ratio:', min_value=0.1, step=0.1)
+    expected_ps_ratio = st.number_input('Enter Expected P/S Ratio:', min_value=0.1, step=0.1)
+    expected_pb_ratio = st.number_input('Enter Expected P/B Ratio:', min_value=0.1, step=0.1)
 
-    if st.button('Calculate Fair Value'):
+    if st.button('Fetch Data and Calculate Fair Value'):
         if not stock_symbol:
             st.warning('Please enter a valid stock symbol.')
         else:
-            fair_value = calculate_fair_value(stock_symbol, pe_ratio, industry_pe_ratio)
-            st.success(f'The estimated fair value of {stock_symbol} is ${fair_value:.2f}')
+            # Fetch the latest income statement data
+            income_statement = fetch_income_statement(stock_symbol)
+
+            # Get the current stock price
+            current_price = yf.Ticker(stock_symbol).info['last_price']
+
+            # Calculate fair value based on user-provided ratios
+            fair_value_pe, fair_value_ps, fair_value_pb = calculate_fair_value(
+                stock_symbol, expected_pe_ratio, expected_ps_ratio, expected_pb_ratio, current_price
+            )
+
+            # Display the results
+            st.subheader('Latest Income Statement Data:')
+            st.write(income_statement)
+
+            st.subheader('Current Stock Price:')
+            st.write(f'${current_price:.2f}')
+
+            st.subheader('Fair Values:')
+            st.write(f'Fair Value (P/E): ${fair_value_pe:.2f}')
+            st.write(f'Fair Value (P/S): ${fair_value_ps:.2f}')
+            st.write(f'Fair Value (P/B): ${fair_value_pb:.2f}')
 
 if __name__ == '__main__':
     main()
