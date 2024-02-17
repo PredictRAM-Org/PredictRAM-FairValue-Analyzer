@@ -1,11 +1,10 @@
 import streamlit as st
 import yfinance as yf
 
-def fetch_income_statement(stock_symbol):
-    # Fetch the latest income statement data from Yahoo Finance
+def fetch_stock_info(stock_symbol):
+    # Fetch general information about the stock from Yahoo Finance
     stock_info = yf.Ticker(stock_symbol)
-    income_statement = stock_info.get_income_statement(interval='annual')
-    return income_statement
+    return stock_info
 
 def calculate_fair_value(stock_symbol, pe_ratio, ps_ratio, pb_ratio, current_price):
     # Calculate fair value based on user-provided ratios
@@ -28,11 +27,11 @@ def main():
         if not stock_symbol:
             st.warning('Please enter a valid stock symbol.')
         else:
-            # Fetch the latest income statement data
-            income_statement = fetch_income_statement(stock_symbol)
+            # Fetch general information about the stock
+            stock_info = fetch_stock_info(stock_symbol)
 
             # Get the current stock price
-            current_price = yf.Ticker(stock_symbol).info['last_price']
+            current_price = stock_info.history(period='1d')['Close'].iloc[-1]
 
             # Calculate fair value based on user-provided ratios
             fair_value_pe, fair_value_ps, fair_value_pb = calculate_fair_value(
@@ -40,9 +39,6 @@ def main():
             )
 
             # Display the results
-            st.subheader('Latest Income Statement Data:')
-            st.write(income_statement)
-
             st.subheader('Current Stock Price:')
             st.write(f'${current_price:.2f}')
 
